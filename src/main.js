@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     intensityExponent: 1.4,
     movementSpeedMultiplier: 3, 
     interactiveFollowFactor: 0.1,
-    noiseAmount: 0.04,//0.03
-    noiseSpeed: 0.1,//0.2
+    noiseAmount: 0.04,
+    noiseSpeed: 0.1,
     responsive: {
       'max-width: 767px': {
         circle4: { radiusFactor: 4.0 },
@@ -29,8 +29,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   gradientBackground_1.play();
-  //gradientBackground_1.pause();
-  //gradientBackground_1.reset();
+
+  const buttons = document.querySelectorAll('button');
+
+  buttons.forEach(v => {
+    
+    v.addEventListener('click', v => {
+
+      if (v.currentTarget.classList.contains('play')){
+        gradientBackground_1.play();
+      } else if (v.currentTarget.classList.contains('pause')) {
+        gradientBackground_1.pause();
+      } else if (v.currentTarget.classList.contains('reset')) {
+        gradientBackground_1.reset();
+      }
+    })
+  })
 })
 
 const gradientBackground = (selector = '.background-canvas', options = {}) => {
