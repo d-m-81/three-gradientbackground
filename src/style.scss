@@ -57,3 +57,35 @@ canvas {
   top: 0;
   width: 100%;
 }
+
+ul {
+  bottom: 80px;
+  display: flex;
+  left: 50%;
+  position: absolute;
+  transform: translate(-50%, 0);
+
+  li {
+    color: #fff;
+    margin: 0 20px;
+
+    button {
+      font-size: 14px;
+      text-transform: uppercase;
+
+      border: 1px solid #fff;
+      border-radius: 50px;
+      height: 50px;
+      padding: 0 40px;
+
+      @include media-breakpoint(pc_hover) {
+        transition: background-color 0.4s, border-color 0.4s;
+
+        &:hover {
+          background-color: #000;
+          border-color: #000;
+        }
+      }
+    }
+  }
+}
