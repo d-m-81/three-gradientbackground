@@ -1,7 +1,4 @@
 import './style.scss';
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.js';
-import { GUI } from 'https://unpkg.com/lil-gui@0.19/dist/lil-gui.esm.min.js';
-
 
 
 
@@ -12,17 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const gradientBackground_1 = gradientBackground('.background-canvas-1', {
     topBgColor: { r: 0, g: 0, b: 0 },
     bottomBgColor: { r: 0, g: 0, b: 0 },
-    circle1: { color: { r: 12, g: 12, b: 12 }, visible: false, posX: 0.2, posY: 0.3, radiusFactor: 1.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
-    circle2: { color: { r: 12, g: 12, b: 12 }, visible: false, posX: 0.8, posY: 0.7, radiusFactor: 1.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
-    circle3: { color: { r: 12, g: 12, b: 12 }, visible: false, posX: 0.5, posY: 0.1, radiusFactor: 1.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
+    circle1: { color: { r: 36, g: 36, b: 36 }, visible: true, posX: 0.2, posY: 0.3, radiusFactor: 1.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
+    circle2: { color: { r: 24, g: 24, b: 24 }, visible: true, posX: 0.8, posY: 0.7, radiusFactor: 1.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
+    circle3: { color: { r: 12, g: 12, b: 12 }, visible: true, posX: 0.5, posY: 0.1, radiusFactor: 1.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
     circle4: { color: { r: 64, g: 64, b: 64 }, visible: true, posX: 0.0, posY: 0.97, radiusFactor: 2.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
-    circle5: { color: { r: 12, g: 12, b: 12 }, visible: false, posX: 0.9, posY: 0.2, radiusFactor: 1.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
+    circle5: { color: { r: 24, g: 24, b: 24 }, visible: true, posX: 0.9, posY: 0.2, radiusFactor: 1.0, vxFactor: 1.0, vyFactor: 1.0, positionEnabled: false },
     circleInteractive: { color: { r: 248, g: 248, b: 248 }, visible: false, posX: 0.5, posY: 0.5, radiusFactor: 1.0, positionEnabled: true },
     intensityExponent: 1.4,
     movementSpeedMultiplier: 3, 
     interactiveFollowFactor: 0.1,
-    noiseAmount: 0,
-    noiseSpeed: 0,
+    noiseAmount: 0.04,//0.03
+    noiseSpeed: 0.1,//0.2
     responsive: {
       'max-width: 767px': {
         circle4: { radiusFactor: 4.0 },
@@ -32,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   gradientBackground_1.play();
+  //gradientBackground_1.pause();
+  //gradientBackground_1.reset();
 })
 
 const gradientBackground = (selector = '.background-canvas', options = {}) => {
@@ -61,6 +60,7 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
   let startTime = null;
   let animationTime = 0;
 
+  // canvasのサイズを取得
   let width = canvas.width = window.innerWidth;
   let height = canvas.height = window.innerHeight;
   const getBaseRadius = (w, h) => (w + h) * 0.2;
@@ -68,9 +68,11 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
 
   // 補助関数: シンプルなディープマージ（ここでは2階層まで対応）
   function deepMerge(target, source) {
+
     for (const key in source) {
       if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && !(source[key] instanceof Float32Array)) {
         if (!target[key] || typeof target[key] !== 'object' || Array.isArray(target[key])) {
+
           // target[key]がオブジェクトでない場合、または配列の場合は新しいオブジェクトで初期化
           target[key] = {};
         }
@@ -83,13 +85,16 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
 
   // 補助関数: ディープコピー
   function deepCopy(obj) {
-      if (obj === null || typeof obj !== 'object') {
+
+    if (obj === null || typeof obj !== 'object') {
           return obj;
       }
       if (Array.isArray(obj)) {
           return obj.map(item => deepCopy(item));
       }
+
       const copy = {};
+
       for (const key in obj) {
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
               copy[key] = deepCopy(obj[key]);
@@ -108,16 +113,18 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
     const interactiveRadius = getInteractiveRadius(width, height);
 
     circles.forEach((c) => {
+      
       // 正規化された位置を現在のサイズに再スケーリング
       c.x = c.normalizedX * width;
       c.y = c.normalizedY * height;
+      
       // 半径も現在のサイズに合わせて再計算
       // 注意: c.baseRadiusはGUIのradiusFactorとは別に、画面サイズ依存の初期半径を保持している。
       // c.baseRadiusはinteractiveに応じて再計算されるべき。
       c.baseRadius = (c.interactive ? interactiveRadius : baseRadius);
     });
 
-    // ★ レスポンシブ設定の適用
+    // レスポンシブ設定の適用
     applyResponsiveSettings();
   }
   window.addEventListener('resize', resizeCanvas);
@@ -129,7 +136,7 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
     mouse.y = e.clientY;
   }
 
-  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener('mousemove', onMouseMove);
 
   const defaultGuiColors = {// GUIで調整するデータ構造 (初期値)
     topBgColor: { r: 255, g: 255, b: 255 },
@@ -158,6 +165,7 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
 
   // トップレベルのプリミティブなプロパティをマージ
   Object.keys(options).forEach(key => {
+
     // オブジェクトでないプロパティは直接上書き
     if (guiColors[key] !== undefined && typeof guiColors[key] !== 'object') {
       guiColors[key] = options[key];
@@ -166,49 +174,54 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
 
   // サークル設定と responsive のディープマージ
   deepMergeKeys.forEach(key => {
+
     if (options[key] && typeof options[key] === 'object') {
       // 既存のオブジェクトとオプションのオブジェクトをディープマージ
       deepMerge(guiColors[key], options[key]);
     }
   });
 
-  // ★ 初期設定を保存: レスポンシブでない場合の基準となる値 (deepCopyを使用)
+  // 初期設定を保存: レスポンシブでない場合の基準となる値 (deepCopyを使用)
   const initialGuiColors = deepCopy(guiColors);
 
-  // ★ レスポンシブ設定を適用する関数
+  // レスポンシブ設定を適用する関数
   function applyResponsiveSettings() {
+    
     const responsiveSettings = initialGuiColors.responsive;
 
-    // 1. まず guiColors を初期設定 (initialGuiColors) に戻す
-    //    （responsiveプロパティ自体は更新不要なので、それ以外をコピー）
+    // guiColors を初期設定 (initialGuiColors) に戻す
+    // （responsiveプロパティ自体は更新不要なので、それ以外をコピー）
     for (const key in initialGuiColors) {
-        if (key !== 'responsive' && Object.prototype.hasOwnProperty.call(initialGuiColors, key)) {
-             if (typeof initialGuiColors[key] === 'object' && initialGuiColors[key] !== null) {
-                 deepMerge(guiColors[key], initialGuiColors[key]); // deepMergeで初期値に戻す
-             } else {
-                 guiColors[key] = initialGuiColors[key]; // プリミティブな値は直接上書き
-             }
+      if (key !== 'responsive' && Object.prototype.hasOwnProperty.call(initialGuiColors, key)) {
+        if (typeof initialGuiColors[key] === 'object' && initialGuiColors[key] !== null) {
+          deepMerge(guiColors[key], initialGuiColors[key]); // deepMergeで初期値に戻す
+        } else {
+          guiColors[key] = initialGuiColors[key]; // プリミティブな値は直接上書き
         }
+      }
     }
 
 
-    // 2. 現在マッチしているレスポンシブ設定をチェックし、上書きする
+    // 現在マッチしているレスポンシブ設定をチェックし、上書きする
     let currentResponsiveProps = {};
 
     for (const query in responsiveSettings) {
       if (window.matchMedia(`(${query})`).matches) {
+        
         // マッチした場合、その設定を現在の設定にディープマージ
         deepMerge(currentResponsiveProps, responsiveSettings[query]);
       }
     }
 
-    // 3. 上書きされる値だけを guiColors オブジェクトに適用
+    // 上書きされる値だけを guiColors オブジェクトに適用
     for (const key in currentResponsiveProps) {
       if (Object.prototype.hasOwnProperty.call(guiColors, key)) {
         if (guiColors[key] && typeof guiColors[key] === 'object' && !Array.isArray(guiColors[key])) {
+          
           // オブジェクトのディープマージ（例: topBgColor）
           deepMerge(guiColors[key], currentResponsiveProps[key]);
         } else {
+          
           // プリミティブな値の直接上書き（例: intensityExponent）
           guiColors[key] = currentResponsiveProps[key];
         }
@@ -231,7 +244,6 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
     }
   }
 
-
   function rgbObjToNormalizedArray(rgbObj) {
     return [rgbObj.r / 255.0, rgbObj.g / 255.0, rgbObj.b / 255.0];
   }
@@ -251,6 +263,7 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
     for (let i = 0; i < 6; i++) {
 
       const circleKey = guiCircleKeys[i];
+      
       // circleDataは initialGuiColors から取得するように変更
       // guiColors はレスポンシブで変更される可能性があるため、初期位置の計算には initialGuiColors を使うのが安全。
       const circleData = initialGuiColors[circleKey]; 
@@ -258,10 +271,8 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
       const x = circleData.posX * width;
       const y = circleData.posY * height;
       const baseR = isInteractive ? interactiveRadius : baseRadius;
-
       const baseVx = isInteractive ? 0 : (Math.random() - 0.5) * (Math.random() * 4 + 1);
       const baseVy = isInteractive ? 0 : (Math.random() - 0.5) * (Math.random() * 4 + 1);
-
       const newCircle = {
         x,
         y,
@@ -281,8 +292,7 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
 
   initCircles();
 
-  // シェーダーコード（変更なし）
-
+  // シェーダーコード
   const vertexSrc = `
     attribute vec2 a_position;
     varying vec2 v_uv;
@@ -352,7 +362,9 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
   `;
 
   function createShader(type, source) {
+    
     const shader = gl.createShader(type);
+    
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
@@ -399,7 +411,6 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
   const u_topBgColor = gl.getUniformLocation(program, "u_topBgColor");
   const u_bottomBgColor = gl.getUniformLocation(program, "u_bottomBgColor");
   const u_intensityExponent = gl.getUniformLocation(program, "u_intensityExponent");
-
   const u_time = gl.getUniformLocation(program, "u_time");
   const u_noiseAmount = gl.getUniformLocation(program, "u_noiseAmount");
 
@@ -449,16 +460,21 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
     }
   }
 
-  // GUIコントローラーの設定（変更なし）
+  // GUIコントローラーの設定
   const movementFolder = gui.addFolder('Movement Controls');
+
   movementFolder.add(guiColors, 'movementSpeedMultiplier', 0.0, 5.0).name('Global Speed');
   movementFolder.add(guiColors, 'interactiveFollowFactor', 0.01, 0.5).name('Follow Factor').step(0.01);
   movementFolder.open();
+
   const bgFolder = gui.addFolder('Background Color');
+
   bgFolder.addColor(guiColors, 'topBgColor').name('Top Color');
   bgFolder.addColor(guiColors, 'bottomBgColor').name('Bottom Color');
   bgFolder.open();
+
   const circleFolder = gui.addFolder('Circle Controls');
+
   function addCircleControls(circleKey, name) {
     const cFolder = circleFolder.addFolder(name);
     cFolder.add(guiColors[circleKey], 'visible').name('Visible');
@@ -480,10 +496,11 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
   addCircleControls('circle5', 'Circle 5');
   addCircleControls('circleInteractive', 'Interactive Circle');
   gui.add(guiColors, 'intensityExponent', 0.1, 5.0).name('Intensity Power');
+  
   const noiseFolder = gui.addFolder("Noise Setting");
+  
   noiseFolder.add(guiColors, 'noiseAmount', 0.0, 0.2).name('ノイズ量');
   noiseFolder.add(guiColors, 'noiseSpeed', 0.0, 1.0).name('ノイズ速度');
-
 
   // render関数
   function render(timestamp) {
@@ -556,40 +573,38 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
     }
   }
 
-  // 外部公開メソッドの実装（変更なし）
-
-  /**
-   * アニメーションを再生します。
-   */
+  // アニメーションを再生
   const play = () => {
+    
     if (!isRunning) {
       isRunning = true;
+
       // 再開時の時間を設定
       startTime = performance.now() - animationTime;
       animationFrameId = requestAnimationFrame(render);
+      
       // クラス追加 (再生)
       canvas.classList.add('is-playing');
       canvas.classList.remove('is-paused');
     }
   };
 
-  /**
-   * アニメーションを停止します。
-   */
+  // アニメーションを停止
   const pause = () => {
+
     if (isRunning) {
       isRunning = false;
       cancelAnimationFrame(animationFrameId);
+      
       // クラス追加 (停止)
       canvas.classList.remove('is-playing');
       canvas.classList.add('is-paused');
     }
   };
 
-  /**
-   * アニメーションを初期状態に戻し、停止します。
-   */
+  // アニメーションを初期状態に戻し、停止
   const reset = () => {
+
     // 停止
     pause();
 
@@ -605,6 +620,7 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
         mouse.x = c.x;
         mouse.y = c.y;
       }
+      
       // 速度も初期のランダム値に戻す
       c.vx = initialState.vx;
       c.vy = initialState.vy;
@@ -623,9 +639,9 @@ const gradientBackground = (selector = '.background-canvas', options = {}) => {
   };
 
   // 初期呼び出し
-  // 1. レスポンシブ設定を適用
+  // レスポンシブ設定を適用
   applyResponsiveSettings();
-  // 2. リセットして初期状態で停止
+  // リセットして初期状態で停止
   reset();
 
   // 外部アクセスできるようにメソッドを返却
